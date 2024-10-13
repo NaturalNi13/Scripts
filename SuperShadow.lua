@@ -1,8 +1,4 @@
-local Players = game:GetService("Players")
-local localPlayer = Players.LocalPlayer
-
-local shadowModel = localPlayer.Character -- Get the local player's character
-
+local shadowModel = game.Workspace:FindFirstChild("TheLegendofIzeaha")
 if shadowModel then
 	local headModel = shadowModel:FindFirstChild("head")
 	if headModel then
@@ -37,12 +33,12 @@ if shadowModel then
 			local angryMouth = mouthsFolder:FindFirstChild("angryMouth")		
 			if angryMouth and angryMouth:IsA("MeshPart") then				
 				angryMouth.Transparency = 0
-			end
+		end
 			local mouth = mouthsFolder:FindFirstChild("mouth")
 			if mouth and mouth:IsA("MeshPart") then
 				mouth.Transparency = 1
-			end		
 		end		
+	end		
 		local spinesFolder = headModel:FindFirstChild("spines")
 		if spinesFolder then
 			local spine1Mesh = spinesFolder:FindFirstChild("spine1")
