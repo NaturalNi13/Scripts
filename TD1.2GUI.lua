@@ -55,7 +55,6 @@ local MinimizeButton =
     }
 )
 
-
 Rayfield:Notify(
     {
         Title = "TD1.2 GUI",
@@ -190,9 +189,9 @@ local function onCharacterAdded(newCharacter)
     -- Update position every frame
     game:GetService("RunService").Heartbeat:Connect(updateFloat)
 
-    local updateTime = 0
+    local updateTime = 0.01
 
-    while wait(updateTime) do
+    while true do
         local xpos, ypos, zpos = updateCoords()
         if ypos and ypos < -20 then
             startFloating()
@@ -203,22 +202,26 @@ local function onCharacterAdded(newCharacter)
             local args = {
                 [1] = cLock
             }
-            
+
             game:GetService("ReplicatedStorage"):WaitForChild("remotes"):WaitForChild("morphs"):FireServer(unpack(args))
         end
         if noCD then
-    if game.ReplicatedStorage.displayPlayers:FindFirstChild(game.Players.LocalPlayer.Name) and 
-       game.ReplicatedStorage.displayPlayers[game.Players.LocalPlayer.Name]:FindFirstChild("cooldowns") then
-        
-        for _, child in ipairs(game.ReplicatedStorage.displayPlayers[game.Players.LocalPlayer.Name].cooldowns:GetChildren()) do
-            if child:IsA("NumberValue") then
-                child:Destroy()
+            if
+                game.ReplicatedStorage.displayPlayers:FindFirstChild(game.Players.LocalPlayer.Name) and
+                    game.ReplicatedStorage.displayPlayers[game.Players.LocalPlayer.Name]:FindFirstChild("cooldowns")
+             then
+                for _, child in ipairs(
+                    game.ReplicatedStorage.displayPlayers[game.Players.LocalPlayer.Name].cooldowns:GetChildren()
+                ) do
+                    if child:IsA("NumberValue") then
+                        child:Destroy()
+                    end
+                end
+            else
+                warn("Player not found.")
             end
         end
-    else
-        warn("Player not found.")
-    end
-        end
+        wait(updateTime)
     end
 end
 local function teleportTo(player, x, y, z)
@@ -267,7 +270,6 @@ local Dropdown =
         end
     }
 )
-
 
 -- Connect the onCharacterAdded function to the CharacterAdded event
 player.CharacterAdded:Connect(onCharacterAdded)
