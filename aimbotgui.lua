@@ -33,9 +33,11 @@ end
 local targetPlayer = nil
 local nearPlayerDistance = 1000
 local aimBot = false  -- Make sure this is true to activate the aimbot
+
 -- Define the base offset
-                local baseRightOffset = 0.05 -- Base right offset that will scale with distance
-                local baseDownOffset = 0.06 -- Base down offset that will scale with distance
+local baseRightOffset = 0.05 -- Base right offset that will scale with distance
+local baseDownOffset = 0.06 -- Base down offset that will scale with distance
+
 local function isVisible(player)
     -- Add your visibility logic here (for now we assume all players are visible)
     return true
@@ -62,38 +64,35 @@ local function findNearestTargetWithZeroHealth()
     return nearestPlayer
 end
 
--- Function to lock the camera onto the nearest player with 0 health and apply dynamic scaling to the offset
+-- Function to smoothly rotate the camera to face the nearest player with 0 health
 local function camlock()
     if aimBot then
+        -- Update the target player
         targetPlayer = findNearestTargetWithZeroHealth()
+
         if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local camera = workspace.CurrentCamera
-            local humanoidRootPart = targetPlayer.Character.HumanoidRootPart
-            if humanoidRootPart then
-                -- Get the camera's current position and the target's position
-                local cameraPosition = camera.CFrame.Position
-                local targetPosition = humanoidRootPart.Position
+            local targetHumanoidRootPart = targetPlayer.Character.HumanoidRootPart
 
-                -- Calculate the direction from the camera to the target
-                local directionToTarget = (targetPosition - cameraPosition).unit
+            -- Get the target's position
+            local targetPosition = targetHumanoidRootPart.Position
 
-                -- Calculate the distance between the camera and the target
-                local distanceToTarget = (targetPosition - cameraPosition).magnitude
+            -- Get the camera's current position and look at the target, keeping the camera in its current position
+            local cameraPosition = camera.CFrame.Position
 
-                
+            -- Multiply the base offsets by the distance to scale dynamically
+            local distanceToTarget = (targetPosition - cameraPosition).magnitude
+            local rightOffset = baseRightOffset * distanceToTarget
+            local downOffset = baseDownOffset * distanceToTarget
 
-                -- Multiply the base offsets by the distance to scale dynamically
-                local rightOffset = baseRightOffset * distanceToTarget
-                local downOffset = baseDownOffset * distanceToTarget
+            -- Offset based on camera's orientation, now scaled by distance
+            local rightVector = camera.CFrame.RightVector
+            local downVector = -camera.CFrame.UpVector
+            local offset = (rightVector * rightOffset) + (downVector * downOffset)
 
-                -- Offset based on camera's orientation, now scaled by distance
-                local rightVector = camera.CFrame.RightVector
-                local downVector = -camera.CFrame.UpVector
-                local offset = (rightVector * rightOffset) + (downVector * downOffset)
-
-                -- Set the camera to look at the target position with the dynamic offset applied
-                camera.CFrame = CFrame.new(cameraPosition, targetPosition + offset)
-            end
+            -- Smoothly rotate the camera towards the target, without changing the camera's position
+            local newCFrame = CFrame.new(cameraPosition, targetPosition + offset)
+            camera.CFrame = camera.CFrame:Lerp(newCFrame, 0.1) -- Smooth camera transition
         end
     end
 end
@@ -101,7 +100,7 @@ end
 -- Connect the camlock function to the RenderStepped event for continuous aiming
 game:GetService("RunService").RenderStepped:Connect(camlock)
 
-
+-- GUI Elements for toggling aimbot and adjusting offsets
 Tab:AddToggle({
 	Name = "Aimbot",
 	Default = false,
@@ -109,6 +108,7 @@ Tab:AddToggle({
 		aimBot = Value
 	end    
 })
+
 Tab:AddTextbox({
 	Name = "Horizontal",
 	Default = "0.05",
@@ -117,6 +117,7 @@ Tab:AddTextbox({
 		baseRightOffset = tonumber(Value)
 	end	  
 })
+
 Tab:AddTextbox({
 	Name = "Vertical",
 	Default = "0.06",
