@@ -1366,9 +1366,10 @@ function OrionLib:MakeWindow(WindowConfig)
 			
 			
 			
+			
 			function ElementFunction:AddBigTextbox(TextboxConfig)  -- Changed the function name here
     TextboxConfig = TextboxConfig or {}
-    TextboxConfig.Name = TextboxConfig.Name or "Textbox"  -- You can keep this as is, or change it to "Big Textbox"
+    TextboxConfig.Name = TextboxConfig.Name or "BigTextbox"  -- Changed to "BigTextbox"
     TextboxConfig.Default = TextboxConfig.Default or ""
     TextboxConfig.TextDisappear = TextboxConfig.TextDisappear or false
     TextboxConfig.Callback = TextboxConfig.Callback or function() end
@@ -1453,6 +1454,9 @@ function OrionLib:MakeWindow(WindowConfig)
                                                   OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6) }):Play()
     end)
 end
+
+
+
 
 
 function ElementFunction:AddTextbox(TextboxConfig)
