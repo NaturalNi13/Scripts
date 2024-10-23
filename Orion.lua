@@ -1373,27 +1373,12 @@ function OrionLib:MakeWindow(WindowConfig)
     TextboxConfig.Default = TextboxConfig.Default or ""
     TextboxConfig.TextDisappear = TextboxConfig.TextDisappear or false
     TextboxConfig.Callback = TextboxConfig.Callback or function() end
-    TextboxConfig.Size = TextboxConfig.Size or UDim2.new(1, 0, 0, 38)  -- Default size if not specified
+    TextboxConfig.Size = TextboxConfig.Size or UDim2.new(1, 0, 0, 200)  -- Increased height for better visibility
     TextboxConfig.AllowNewLine = TextboxConfig.AllowNewLine or false -- Default to not allowing new lines
 
     local Click = SetProps(MakeElement("Button"), {
         Size = UDim2.new(1, 0, 1, 0)
     })
-
-    -- Create the actual TextBox with the specified size
-    local TextboxActual = AddThemeObject(Create("TextBox", {
-        Size = UDim2.new(1, 0, 1, 0),  -- Set to fill the available space
-        BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        PlaceholderColor3 = Color3.fromRGB(210, 210, 210),
-        PlaceholderText = "Input",
-        Font = Enum.Font.GothamSemibold,
-        TextXAlignment = Enum.TextXAlignment.Left,  -- Changed to Left for better user experience
-        TextSize = 14,
-        ClearTextOnFocus = false,
-        TextWrapped = true,
-        MultiLine = true,  -- Enable multi-line support
-    }), "Text")
 
     -- Create the main frame for the TextBox
     local TextboxFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5), {
@@ -1407,24 +1392,43 @@ function OrionLib:MakeWindow(WindowConfig)
             Name = "Content"
         }), "Text"),
         AddThemeObject(MakeElement("Stroke"), "Stroke"),
-        SetProps(TextboxActual, {
-            Size = UDim2.new(1, -12, 1, -30),  -- Adjusted TextBox size for padding
+        
+        -- Create a ScrollingFrame for the TextBox
+        AddThemeObject(SetProps(Create("ScrollingFrame", {
+            Size = UDim2.new(1, -12, 1, -30),  -- Adjust size to fit within the frame with padding
             Position = UDim2.new(0, 12, 0, 30),  -- Position it below the label
+            BackgroundTransparency = 1,
+            ScrollBarThickness = 6,  -- Thickness of the scrollbar
+            CanvasSize = UDim2.new(0, 0, 0, 0),  -- Initial canvas size
+            ScrollingEnabled = true,
+            VerticalScrollBarPosition = Enum.VerticalScrollBarPosition.Right,
+            ClipsDescendants = true,
+        }), "ScrollFrame"), {
+            -- Create the actual TextBox inside the ScrollingFrame
+            AddThemeObject(SetProps(Create("TextBox", {
+                Size = UDim2.new(1, 0, 0, 0),  -- Height will be dynamically adjusted
+                BackgroundTransparency = 1,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                PlaceholderColor3 = Color3.fromRGB(210, 210, 210),
+                PlaceholderText = "Input",
+                Font = Enum.Font.GothamSemibold,
+                TextXAlignment = Enum.TextXAlignment.Left,  -- Changed to Left for better user experience
+                TextYAlignment = Enum.TextYAlignment.Top,  -- Set vertical anchor to the top
+                TextSize = 14,
+                ClearTextOnFocus = false,
+                TextWrapped = true,
+                MultiLine = true,  -- Enable multi-line support
+            }), "TextBox"),
+            function(textBox)
+                -- Update the canvas size based on text length
+                textBox:GetPropertyChangedSignal("Text"):Connect(function()
+                    textBox.Size = UDim2.new(1, 0, 0, textBox.TextBounds.Y + 10)  -- Adjust height based on text bounds
+                    textBox.Parent.CanvasSize = UDim2.new(0, 0, 0, textBox.Size.Y.Offset)  -- Update ScrollingFrame canvas size
+                end)
+            end
         }),
         Click
     }), "Second")
-
-    -- Handle FocusLost event for the TextBox
-    AddConnection(TextboxActual.FocusLost, function(enterPressed)
-        if not TextboxConfig.AllowNewLine and enterPressed then
-            TextboxActual.Text = string.gsub(TextboxActual.Text, "\n", "") -- Remove any new line characters if disallowed
-        end
-        TextboxConfig.Callback(TextboxActual.Text) -- Call the callback with the current text
-
-        if TextboxConfig.TextDisappear then
-            TextboxActual.Text = "" -- Clear the text if specified
-        end
-    end)
 
     -- Set default text
     TextboxActual.Text = TextboxConfig.Default
@@ -1453,7 +1457,20 @@ function OrionLib:MakeWindow(WindowConfig)
                                                   OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, 
                                                   OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6) }):Play()
     end)
+
+    -- Handle FocusLost event for the TextBox
+    AddConnection(TextboxActual.FocusLost, function(enterPressed)
+        if not TextboxConfig.AllowNewLine and enterPressed then
+            TextboxActual.Text = string.gsub(TextboxActual.Text, "\n", "") -- Remove any new line characters if disallowed
+        end
+        TextboxConfig.Callback(TextboxActual.Text) -- Call the callback with the current text
+
+        if TextboxConfig.TextDisappear then
+            TextboxActual.Text = "" -- Clear the text if specified
+        end
+    end)
 end
+
 
 
 
