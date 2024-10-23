@@ -1366,7 +1366,6 @@ function OrionLib:MakeWindow(WindowConfig)
 			
 			
 			
-			
 			function ElementFunction:AddBigTextbox(TextboxConfig)  -- Changed the function name here
     TextboxConfig = TextboxConfig or {}
     TextboxConfig.Name = TextboxConfig.Name or "BigTextbox"  -- Changed to "BigTextbox"
@@ -1456,9 +1455,6 @@ function OrionLib:MakeWindow(WindowConfig)
 end
 
 
-
-
-
 function ElementFunction:AddTextbox(TextboxConfig)
 				TextboxConfig = TextboxConfig or {}
 				TextboxConfig.Name = TextboxConfig.Name or "Textbox"
@@ -1538,7 +1534,7 @@ function ElementFunction:AddTextbox(TextboxConfig)
 					TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
 				end)
 			end 
-			
+
 
 			function ElementFunction:AddColorpicker(ColorpickerConfig)
 				ColorpickerConfig = ColorpickerConfig or {}
