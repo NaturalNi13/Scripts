@@ -1388,6 +1388,7 @@ function OrionLib:MakeWindow(WindowConfig)
         PlaceholderText = "Input",
         Font = Enum.Font.GothamSemibold,
         TextXAlignment = Enum.TextXAlignment.Left,  -- Changed to Left for better user experience
+        TextYAlignment = Enum.TextYAlignment.Top,
         TextSize = 14,
         ClearTextOnFocus = false,
         TextWrapped = true,
