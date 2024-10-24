@@ -98,41 +98,52 @@ task.spawn(function()
 end)
 
 
+
+
 local function AddDraggingFunctionality(DragPoint, Main)
-    local Dragging = false
-    local dragInput
-    local startOffset = Vector2.new(0, 0)
+    pcall(function()
+        local Dragging = false
+        local MousePos, FramePos
 
-    -- Handle input beginning
-    DragPoint.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-           input.UserInputType == Enum.UserInputType.Touch then
-            Dragging = true
-            dragInput = input
-
-            -- Calculate the offset based on where the input is relative to the Main UI element
-            local mousePos = input.Position
-            local mainPos = Main.AbsolutePosition
-            startOffset = Vector2.new(mousePos.X - mainPos.X, mousePos.Y - mainPos.Y)
-
-            -- Listen for the end of the input
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    Dragging = false
-                end
-            end)
+        -- Function to handle the end of a drag
+        local function EndDrag(Input)
+            if Input.UserInputState == Enum.UserInputState.End then
+                Dragging = false
+            end
         end
-    end)
 
-    -- Handle dragging movement
-    UserInputService.InputChanged:Connect(function(input)
-        if Dragging and input == dragInput then
-            local mousePos = input.Position
-            -- Update the position based on the current mouse/touch position
-            Main.Position = UDim2.new(0, mousePos.X - startOffset.X, 0, mousePos.Y - startOffset.Y)
-        end
+        -- Handle InputBegan for both mouse and touch
+        DragPoint.InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 or 
+               Input.UserInputType == Enum.UserInputType.Touch then
+                Dragging = true
+                MousePos = Input.Position
+                FramePos = Main.Position
+
+                -- Detect when the input ends (for mouse or touch)
+                Input.Changed:Connect(EndDrag)
+            end
+        end)
+
+        -- Handle InputChanged for both mouse movement and touch movement
+        DragPoint.InputChanged:Connect(function(Input)
+            if Dragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or 
+                             Input.UserInputType == Enum.UserInputType.Touch) then
+                -- Update the position while dragging
+                local Delta = Input.Position - MousePos
+                TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Position = UDim2.new(
+                        FramePos.X.Scale,
+                        FramePos.X.Offset + Delta.X,
+                        FramePos.Y.Scale,
+                        FramePos.Y.Offset + Delta.Y
+                    )
+                }):Play()
+            end
+        end)
     end)
 end
+
 
 
 local function Create(Name, Properties, Children)
