@@ -97,13 +97,24 @@ task.spawn(function()
 	end
 end)
 
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
 local function AddDraggingFunctionality(DragPoint, Main)
 	pcall(function()
-		local Dragging, DragInput, MousePos, FramePos = false
+		local Dragging, DragInput, TouchPos, FramePos = false
+		local isMobile = UserInputService.TouchEnabled -- Check if the device is mobile
+
+		-- Handle input beginning
 		DragPoint.InputBegan:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+			if Input.UserInputType == Enum.UserInputType.MouseButton1 or 
+			   (isMobile and Input.UserInputType == Enum.UserInputType.Touch) then
 				Dragging = true
-				MousePos = Input.Position
+				if isMobile then
+					TouchPos = Input.Position -- Save touch position for mobile
+				else
+					MousePos = Input.Position -- Save mouse position
+				end
 				FramePos = Main.Position
 
 				Input.Changed:Connect(function()
@@ -113,19 +124,37 @@ local function AddDraggingFunctionality(DragPoint, Main)
 				end)
 			end
 		end)
+
+		-- Handle input changed
 		DragPoint.InputChanged:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseMovement then
+			if Input.UserInputType == Enum.UserInputType.MouseMovement or
+			   (isMobile and Input.UserInputType == Enum.UserInputType.Touch) then
 				DragInput = Input
 			end
 		end)
+
+		-- Handle dragging
 		UserInputService.InputChanged:Connect(function(Input)
-			if Input == DragInput and Dragging then
-				local Delta = Input.Position - MousePos
-				TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position  = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)}):Play()
+			if Dragging then
+				if Input == DragInput then
+					local Delta
+					if isMobile then
+						Delta = Input.Position - TouchPos -- For mobile dragging
+						TouchPos = Input.Position -- Update touch position
+					else
+						Delta = Input.Position - MousePos -- For mouse dragging
+						MousePos = Input.Position -- Update mouse position
+					end
+					-- Update the position of the UI element
+					TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+						Position = UDim2.new(FramePos.X.Scale, FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)
+					}):Play()
+				end
 			end
 		end)
 	end)
-end   
+end
+
 
 local function Create(Name, Properties, Children)
 	local Object = Instance.new(Name)
