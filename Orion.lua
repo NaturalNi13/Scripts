@@ -99,52 +99,45 @@ end)
 
 
 local function AddDraggingFunctionality(DragPoint, Main)
-	pcall(function()
-		local Dragging = false
-		local DragInput
-		local StartPos = Main.Position
-		local InitialMousePos
+    local Dragging = false
+    local initialPosition = Main.Position
+    local dragInput
 
-		-- Function to update the position based on input movement
-		local function updatePosition(inputPosition)
-			local Delta = inputPosition - InitialMousePos -- Calculate delta from the initial touch/mouse position
+    -- Function to update position based on input
+    local function updatePosition(inputPosition)
+        -- Calculate new position based on the input position
+        local newX = initialPosition.X.Offset + (inputPosition.X - dragInput.Position.X)
+        local newY = initialPosition.Y.Offset + (inputPosition.Y - dragInput.Position.Y)
 
-			-- Update the position of Main UI element
-			Main.Position = UDim2.new(
-				StartPos.X.Scale,
-				StartPos.X.Offset + Delta.X,
-				StartPos.Y.Scale,
-				StartPos.Y.Offset + Delta.Y
-			)
-		end
+        -- Update the UI element position
+        Main.Position = UDim2.new(initialPosition.X.Scale, newX, initialPosition.Y.Scale, newY)
+    end
 
-		-- Handle input beginning
-		DragPoint.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-			   input.UserInputType == Enum.UserInputType.Touch then
-				Dragging = true
-				DragInput = input -- Reference to the input being used
-				InitialMousePos = input.Position -- Store the initial position of the input
+    -- Handle input beginning
+    DragPoint.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            Dragging = true
+            dragInput = input -- Reference to the current input
 
-				-- Store the initial position of the Main UI element
-				StartPos = Main.Position
+            -- Store the initial position of the Main UI element
+            initialPosition = Main.Position
 
-				-- Listen for the end of the input
-				input.Changed:Connect(function()
-					if input.UserInputState == Enum.UserInputState.End then
-						Dragging = false
-					end
-				end)
-			end
-		end)
+            -- Listen for the end of the input
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    Dragging = false
+                end
+            end)
+        end
+    end)
 
-		-- Handle dragging movement
-		UserInputService.InputChanged:Connect(function(input)
-			if Dragging and input == DragInput then
-				updatePosition(input.Position) -- Call function to update position
-			end
-		end)
-	end)
+    -- Handle dragging movement
+    UserInputService.InputChanged:Connect(function(input)
+        if Dragging and input == dragInput then
+            updatePosition(input.Position) -- Update position based on the current input position
+        end
+    end)
 end
 
 local function Create(Name, Properties, Children)
