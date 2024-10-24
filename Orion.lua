@@ -97,25 +97,25 @@ task.spawn(function()
 	end
 end)
 
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 
 local function AddDraggingFunctionality(DragPoint, Main)
 	pcall(function()
 		local Dragging = false
 		local DragInput
-		local InitialPosition = Main.Position
-		local Offset = Vector2.new(0, 0)
+		local StartPos = Main.Position
+		local InitialMousePos
 
+		-- Function to update the position based on input movement
 		local function updatePosition(inputPosition)
-			-- Calculate new position based on the initial position and the offset
-			local newPosition = UDim2.new(
-				InitialPosition.X.Scale,
-				InitialPosition.X.Offset + (inputPosition.X - Offset.X),
-				InitialPosition.Y.Scale,
-				InitialPosition.Y.Offset + (inputPosition.Y - Offset.Y)
+			local Delta = inputPosition - InitialMousePos -- Calculate delta from the initial touch/mouse position
+
+			-- Update the position of Main UI element
+			Main.Position = UDim2.new(
+				StartPos.X.Scale,
+				StartPos.X.Offset + Delta.X,
+				StartPos.Y.Scale,
+				StartPos.Y.Offset + Delta.Y
 			)
-			Main.Position = newPosition
 		end
 
 		-- Handle input beginning
@@ -123,10 +123,11 @@ local function AddDraggingFunctionality(DragPoint, Main)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or 
 			   input.UserInputType == Enum.UserInputType.Touch then
 				Dragging = true
-				DragInput = input
-				Offset = Vector2.new(input.Position.X, input.Position.Y) -- Capture the initial offset
+				DragInput = input -- Reference to the input being used
+				InitialMousePos = input.Position -- Store the initial position of the input
 
-				InitialPosition = Main.Position -- Store the initial position
+				-- Store the initial position of the Main UI element
+				StartPos = Main.Position
 
 				-- Listen for the end of the input
 				input.Changed:Connect(function()
@@ -137,10 +138,10 @@ local function AddDraggingFunctionality(DragPoint, Main)
 			end
 		end)
 
-		-- Handle dragging
+		-- Handle dragging movement
 		UserInputService.InputChanged:Connect(function(input)
 			if Dragging and input == DragInput then
-				updatePosition(input.Position) -- Update the position based on input
+				updatePosition(input.Position) -- Call function to update position
 			end
 		end)
 	end)
