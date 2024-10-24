@@ -102,59 +102,49 @@ local TweenService = game:GetService("TweenService")
 
 local function AddDraggingFunctionality(DragPoint, Main)
 	pcall(function()
-		local Dragging, DragInput, TouchPos, FramePos = false
-		local isMobile = UserInputService.TouchEnabled -- Check if the device is mobile
+		local Dragging = false
+		local DragInput
+		local InitialPosition = Main.Position
+		local Offset = Vector2.new(0, 0)
+
+		local function updatePosition(inputPosition)
+			-- Calculate new position based on the initial position and the offset
+			local newPosition = UDim2.new(
+				InitialPosition.X.Scale,
+				InitialPosition.X.Offset + (inputPosition.X - Offset.X),
+				InitialPosition.Y.Scale,
+				InitialPosition.Y.Offset + (inputPosition.Y - Offset.Y)
+			)
+			Main.Position = newPosition
+		end
 
 		-- Handle input beginning
-		DragPoint.InputBegan:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 or 
-			   (isMobile and Input.UserInputType == Enum.UserInputType.Touch) then
+		DragPoint.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+			   input.UserInputType == Enum.UserInputType.Touch then
 				Dragging = true
-				if isMobile then
-					TouchPos = Input.Position -- Save touch position for mobile
-				else
-					MousePos = Input.Position -- Save mouse position
-				end
-				FramePos = Main.Position
+				DragInput = input
+				Offset = Vector2.new(input.Position.X, input.Position.Y) -- Capture the initial offset
 
-				Input.Changed:Connect(function()
-					if Input.UserInputState == Enum.UserInputState.End then
+				InitialPosition = Main.Position -- Store the initial position
+
+				-- Listen for the end of the input
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
 						Dragging = false
 					end
 				end)
 			end
 		end)
 
-		-- Handle input changed
-		DragPoint.InputChanged:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseMovement or
-			   (isMobile and Input.UserInputType == Enum.UserInputType.Touch) then
-				DragInput = Input
-			end
-		end)
-
 		-- Handle dragging
-		UserInputService.InputChanged:Connect(function(Input)
-			if Dragging then
-				if Input == DragInput then
-					local Delta
-					if isMobile then
-						Delta = Input.Position - TouchPos -- For mobile dragging
-						TouchPos = Input.Position -- Update touch position
-					else
-						Delta = Input.Position - MousePos -- For mouse dragging
-						MousePos = Input.Position -- Update mouse position
-					end
-					-- Update the position of the UI element
-					TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-						Position = UDim2.new(FramePos.X.Scale, FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)
-					}):Play()
-				end
+		UserInputService.InputChanged:Connect(function(input)
+			if Dragging and input == DragInput then
+				updatePosition(input.Position) -- Update the position based on input
 			end
 		end)
 	end)
 end
-
 
 local function Create(Name, Properties, Children)
 	local Object = Instance.new(Name)
