@@ -100,28 +100,20 @@ end)
 
 local function AddDraggingFunctionality(DragPoint, Main)
     local Dragging = false
-    local initialPosition = Main.Position
     local dragInput
-
-    -- Function to update position based on input
-    local function updatePosition(inputPosition)
-        -- Calculate new position based on the input position
-        local newX = initialPosition.X.Offset + (inputPosition.X - dragInput.Position.X)
-        local newY = initialPosition.Y.Offset + (inputPosition.Y - dragInput.Position.Y)
-
-        -- Update the UI element position
-        Main.Position = UDim2.new(initialPosition.X.Scale, newX, initialPosition.Y.Scale, newY)
-    end
+    local startOffset = Vector2.new(0, 0)
 
     -- Handle input beginning
     DragPoint.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or 
            input.UserInputType == Enum.UserInputType.Touch then
             Dragging = true
-            dragInput = input -- Reference to the current input
+            dragInput = input
 
-            -- Store the initial position of the Main UI element
-            initialPosition = Main.Position
+            -- Calculate the offset based on where the input is relative to the Main UI element
+            local mousePos = input.Position
+            local mainPos = Main.AbsolutePosition
+            startOffset = Vector2.new(mousePos.X - mainPos.X, mousePos.Y - mainPos.Y)
 
             -- Listen for the end of the input
             input.Changed:Connect(function()
@@ -135,10 +127,13 @@ local function AddDraggingFunctionality(DragPoint, Main)
     -- Handle dragging movement
     UserInputService.InputChanged:Connect(function(input)
         if Dragging and input == dragInput then
-            updatePosition(input.Position) -- Update position based on the current input position
+            local mousePos = input.Position
+            -- Update the position based on the current mouse/touch position
+            Main.Position = UDim2.new(0, mousePos.X - startOffset.X, 0, mousePos.Y - startOffset.Y)
         end
     end)
 end
+
 
 local function Create(Name, Properties, Children)
 	local Object = Instance.new(Name)
