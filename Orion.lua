@@ -101,9 +101,10 @@ end)
 
 
 
+
 local function AddDraggingFunctionality(DragPoint, Main)
     local Dragging = false
-    local InitialMousePos, InitialFramePos, Offset
+    local InitialMousePos, InitialFramePos
 
     -- Function to handle the end of a drag
     local function EndDrag(Input)
@@ -112,31 +113,27 @@ local function AddDraggingFunctionality(DragPoint, Main)
         end
     end
 
-    -- Handle InputBegan for both mouse and touch
+    -- Handle InputBegan on DragPoint only
     DragPoint.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             Dragging = true
             InitialMousePos = Input.Position
             InitialFramePos = Main.Position
 
-            -- Calculate the offset between click/touch point and frame's top-left corner
-            Offset = Vector2.new(
-                InitialMousePos.X - Main.AbsolutePosition.X,
-                InitialMousePos.Y - Main.AbsolutePosition.Y
-            )
-
-            -- Detect when the input ends (for mouse or touch)
+            -- Detect when the input ends
             Input.Changed:Connect(EndDrag)
         end
     end)
 
-    -- Handle InputChanged globally (for both mouse and touch input)
+    -- Handle InputChanged only when dragging is true
     UserInputService.InputChanged:Connect(function(Input)
         if Dragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
-            local NewMousePos = Input.Position
+            local Delta = Input.Position - InitialMousePos
             Main.Position = UDim2.new(
-                0, NewMousePos.X - Offset.X,
-                0, NewMousePos.Y - Offset.Y
+                InitialFramePos.X.Scale,
+                InitialFramePos.X.Offset + Delta.X,
+                InitialFramePos.Y.Scale,
+                InitialFramePos.Y.Offset + Delta.Y
             )
         end
     end)
