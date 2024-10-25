@@ -103,7 +103,7 @@ end)
 local function AddDraggingFunctionality(DragPoint, Main)
     pcall(function()
         local Dragging = false
-        local DragInput, MousePos, FramePos
+        local DragInput, InitialMousePos, InitialFramePos, Offset
 
         -- Function to handle the end of a drag
         local function EndDrag(Input)
@@ -117,8 +117,14 @@ local function AddDraggingFunctionality(DragPoint, Main)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 or 
                Input.UserInputType == Enum.UserInputType.Touch then
                 Dragging = true
-                MousePos = Input.Position
-                FramePos = Main.Position
+                InitialMousePos = Input.Position
+                InitialFramePos = Main.Position
+
+                -- Calculate the offset between click/touch point and frame's top-left corner
+                Offset = Vector2.new(
+                    InitialMousePos.X - Main.AbsolutePosition.X,
+                    InitialMousePos.Y - Main.AbsolutePosition.Y
+                )
 
                 -- Detect when the input ends (for mouse or touch)
                 Input.Changed:Connect(EndDrag)
@@ -129,18 +135,18 @@ local function AddDraggingFunctionality(DragPoint, Main)
         UserInputService.InputChanged:Connect(function(Input)
             if Dragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or 
                              Input.UserInputType == Enum.UserInputType.Touch) then
-                -- Calculate the offset directly
-                local Delta = Input.Position - MousePos
-                Main.Position = UDim2.new(
-                    FramePos.X.Scale,
-                    FramePos.X.Offset + Delta.X,
-                    FramePos.Y.Scale,
-                    FramePos.Y.Offset + Delta.Y
+                -- Adjust position based on the initial offset
+                local NewMousePos = Input.Position
+                local NewFramePos = UDim2.new(
+                    0, NewMousePos.X - Offset.X,
+                    0, NewMousePos.Y - Offset.Y
                 )
+                Main.Position = NewFramePos
             end
         end)
     end)
 end
+
 
 
 
