@@ -100,6 +100,65 @@ end)
 
 
 
+
+local function AddDraggingFunctionality(DragPoint, Main)
+    local Dragging = false
+    local DragStart, StartPos
+    local Connection = nil -- To store the InputChanged connection
+
+    -- Function to handle drag ending
+    local function EndDrag()
+        Dragging = false
+        -- Disconnect the InputChanged connection when dragging ends
+        if Connection then
+            Connection:Disconnect()
+            Connection = nil
+        end
+    end
+
+    -- Initiate drag on DragPoint click or touch only
+    DragPoint.InputBegan:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+            Dragging = true
+            DragStart = Input.Position
+            StartPos = Main.Position
+
+            -- Start listening to InputChanged only when dragging starts
+            if not Connection then
+                Connection = UserInputService.InputChanged:Connect(function(InputChanged)
+                    if Dragging and (InputChanged.UserInputType == Enum.UserInputType.MouseMovement or InputChanged.UserInputType == Enum.UserInputType.Touch) then
+                        -- Check if the input is still within DragPoint bounds
+                        local DragPointAbsPos = DragPoint.AbsolutePosition
+                        local DragPointAbsSize = DragPoint.AbsoluteSize
+
+                        -- Only update position if the input is still within DragPoint bounds
+                        if InputChanged.Position.X >= DragPointAbsPos.X and InputChanged.Position.X <= DragPointAbsPos.X + DragPointAbsSize.X and
+                           InputChanged.Position.Y >= DragPointAbsPos.Y and InputChanged.Position.Y <= DragPointAbsPos.Y + DragPointAbsSize.Y then
+                            local Delta = InputChanged.Position - DragStart
+                            Main.Position = UDim2.new(
+                                StartPos.X.Scale,
+                                StartPos.X.Offset + Delta.X,
+                                StartPos.Y.Scale,
+                                StartPos.Y.Offset + Delta.Y
+                            )
+                        else
+                            -- If the input goes outside the bounds, stop dragging
+                            EndDrag()
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+
+    -- Listen for InputEnded globally to stop dragging
+    UserInputService.InputEnded:Connect(function(InputEnded)
+        if InputEnded.UserInputType == Enum.UserInputType.MouseButton1 or InputEnded.UserInputType == Enum.UserInputType.Touch then
+            EndDrag()
+        end
+    end)
+end
+
 local function AddDraggingFunctionality(DragPoint, Main)
     local Dragging = false
     local DragStart, StartPos
