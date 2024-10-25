@@ -127,13 +127,24 @@ local function AddDraggingFunctionality(DragPoint, Main)
     -- Update position only if Dragging is active
     UserInputService.InputChanged:Connect(function(Input)
         if Dragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
-            local Delta = Input.Position - DragStart
-            Main.Position = UDim2.new(
-                StartPos.X.Scale,
-                StartPos.X.Offset + Delta.X,
-                StartPos.Y.Scale,
-                StartPos.Y.Offset + Delta.Y
-            )
+            -- Get the absolute size and position of DragPoint to ensure the input is within bounds
+            local DragPointAbsPos = DragPoint.AbsolutePosition
+            local DragPointAbsSize = DragPoint.AbsoluteSize
+
+            -- Check if the input is still within the bounds of DragPoint
+            if Input.Position.X >= DragPointAbsPos.X and Input.Position.X <= DragPointAbsPos.X + DragPointAbsSize.X and
+               Input.Position.Y >= DragPointAbsPos.Y and Input.Position.Y <= DragPointAbsPos.Y + DragPointAbsSize.Y then
+                local Delta = Input.Position - DragStart
+                Main.Position = UDim2.new(
+                    StartPos.X.Scale,
+                    StartPos.X.Offset + Delta.X,
+                    StartPos.Y.Scale,
+                    StartPos.Y.Offset + Delta.Y
+                )
+            else
+                -- If input goes outside bounds, stop dragging
+                Dragging = false
+            end
         end
     end)
 end
