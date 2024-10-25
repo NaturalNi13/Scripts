@@ -101,39 +101,38 @@ end)
 
 
 
-
 local function AddDraggingFunctionality(DragPoint, Main)
     local Dragging = false
-    local InitialMousePos, InitialFramePos
+    local DragStart, StartPos
 
-    -- Function to handle the end of a drag
+    -- Function to handle drag ending
     local function EndDrag(Input)
         if Input.UserInputState == Enum.UserInputState.End then
             Dragging = false
         end
     end
 
-    -- Handle InputBegan on DragPoint only
+    -- Initiate drag on DragPoint click or touch only
     DragPoint.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             Dragging = true
-            InitialMousePos = Input.Position
-            InitialFramePos = Main.Position
+            DragStart = Input.Position
+            StartPos = Main.Position
 
             -- Detect when the input ends
             Input.Changed:Connect(EndDrag)
         end
     end)
 
-    -- Handle InputChanged only when dragging is true
+    -- Update position only if Dragging is active
     UserInputService.InputChanged:Connect(function(Input)
         if Dragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
-            local Delta = Input.Position - InitialMousePos
+            local Delta = Input.Position - DragStart
             Main.Position = UDim2.new(
-                InitialFramePos.X.Scale,
-                InitialFramePos.X.Offset + Delta.X,
-                InitialFramePos.Y.Scale,
-                InitialFramePos.Y.Offset + Delta.Y
+                StartPos.X.Scale,
+                StartPos.X.Offset + Delta.X,
+                StartPos.Y.Scale,
+                StartPos.Y.Offset + Delta.Y
             )
         end
     end)
