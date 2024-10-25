@@ -103,7 +103,7 @@ end)
 local function AddDraggingFunctionality(DragPoint, Main)
     pcall(function()
         local Dragging = false
-        local MousePos, FramePos
+        local DragInput, MousePos, FramePos
 
         -- Function to handle the end of a drag
         local function EndDrag(Input)
@@ -125,20 +125,18 @@ local function AddDraggingFunctionality(DragPoint, Main)
             end
         end)
 
-        -- Handle InputChanged for both mouse movement and touch movement
-        DragPoint.InputChanged:Connect(function(Input)
+        -- Handle InputChanged globally for consistent position updating
+        UserInputService.InputChanged:Connect(function(Input)
             if Dragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or 
                              Input.UserInputType == Enum.UserInputType.Touch) then
-                -- Update the position while dragging
+                -- Calculate the offset directly
                 local Delta = Input.Position - MousePos
-                TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    Position = UDim2.new(
-                        FramePos.X.Scale,
-                        FramePos.X.Offset + Delta.X,
-                        FramePos.Y.Scale,
-                        FramePos.Y.Offset + Delta.Y
-                    )
-                }):Play()
+                Main.Position = UDim2.new(
+                    FramePos.X.Scale,
+                    FramePos.X.Offset + Delta.X,
+                    FramePos.Y.Scale,
+                    FramePos.Y.Offset + Delta.Y
+                )
             end
         end)
     end)
