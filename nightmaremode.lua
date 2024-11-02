@@ -12,9 +12,9 @@ local Lighting = game:GetService("Lighting")
 
     -- Custom sound setup
     local customSound = Instance.new("Sound")
-    customSound.SoundId = "rbxassetid://9043365993"
+    customSound.SoundId = "rbxassetid://6101411994"
     customSound.Looped = true
-    customSound.Volume = 3
+    customSound.Volume = 1
     customSound.Parent = SoundService
 
     -- Stop other sounds
@@ -45,7 +45,41 @@ end
 
 local function fog()
     
+-- Create a ScreenGui for the vignette effect
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "VignetteEffect"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
+-- Create an ImageLabel for the vignette image
+local vignetteImage = Instance.new("ImageLabel")
+vignetteImage.Name = "Vignette"
+vignetteImage.Image = "rbxassetid://95212900084536"  -- Replace with your asset ID
+vignetteImage.Size = UDim2.new(1, 0, 1, 0)  -- Full screen size
+vignetteImage.Position = UDim2.new(0, 0, 0, 0)
+vignetteImage.BackgroundTransparency = 1  -- Make sure there's no background
+vignetteImage.ImageTransparency = 0.3  -- Adjust for desired effect (0 = fully visible, 1 = invisible)
+vignetteImage.ImageColor3 = Color3.new(0, 0, 0)  -- Black tint for a horror effect
+vignetteImage.Parent = screenGui
+
+-- Add a UIAspectRatioConstraint to maintain aspect ratio
+local aspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+aspectRatioConstraint.AspectRatio = 16 / 9  -- Adjust this to match your original image's aspect ratio
+aspectRatioConstraint.Parent = vignetteImage
+local player = game.Players.LocalPlayer
+local camera = game.Workspace.CurrentCamera
+
+-- Function to enable first-person mode
+local function setFirstPerson()
+    -- Lock the player's camera to first-person
+    player.CameraMode = Enum.CameraMode.LockFirstPerson
+    -- Disable mouse zooming to prevent the player from switching views
+    player.CameraMinZoomDistance = 0.5
+    player.CameraMaxZoomDistance = 0.5
+
+    -- Make sure the camera follows the player's head position
+    camera.CameraSubject = player.Character:WaitForChild("Humanoid")
+end
+setFirstPerson()
     if not getRole() then
         -- Custom fog properties
         Lighting.FogColor = Color3.fromRGB(0, 0, 0)
