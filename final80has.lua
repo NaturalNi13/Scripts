@@ -2,6 +2,7 @@ local checkEncrypted = loadstring(game:HttpGet("https://raw.githubusercontent.co
 local owner = "natural idiot"
 local result = checkEncrypted(owner)
 
+
  if result then
 local canPlay = true
 
