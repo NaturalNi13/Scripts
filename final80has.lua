@@ -2,8 +2,7 @@ local checkEncrypted = loadstring(game:HttpGet("https://raw.githubusercontent.co
 local owner = "natural idiot"
 local result = checkEncrypted(owner)
 
-
- if result then
+if result then
 local canPlay = true
 
 while true do
@@ -21,5 +20,7 @@ while true do
          end
    end
    task.wait(0.1)
+  end
 end
-end
+
+-- Lol
