@@ -1,4 +1,5 @@
 local checkEncrypted = loadstring(game:HttpGet("https://raw.githubusercontent.com/NaturalNi13/Scripts/refs/heads/main/encrypter.lua"))()
+local owner = "natural idiot"
 local result = checkEncrypted(owner)
 
  if result then
