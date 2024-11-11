@@ -6,7 +6,7 @@ if result then
 local canPlay = true
 
 while true do
-   if workspace.game.currentMap:getChildren()[1] then
+   if workspace.game.currentMap:getChildren() > 0 then
       -- Check if the current map is "hide and seek"
       if workspace.game.currentMap:getChildren()[1].Name == "hide and seek" then
         -- Play custom sound if ingameTimer is less than or equal to 80
