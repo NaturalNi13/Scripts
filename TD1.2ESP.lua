@@ -1,8 +1,6 @@
 local player = game:GetService("Players").LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local givenCharacter
 
--- Define character-to-color mapping
 local characterColors = {
     tails = Color3.fromRGB(255, 165, 0),        -- Orange
     knuckles = Color3.fromRGB(255, 0, 0),      -- Bright Red
@@ -19,42 +17,46 @@ local characterColors = {
     sonicexe = Color3.fromRGB(139, 0, 0),      -- Dark Red
 }
 
--- Keep track of all created Highlight instances
-local activeHighlights = {}
+local highlightMap = {}
 
--- Define the function
 local function loopThroughDisplayPlayers()
-    -- Check if displayPlayers exists
     local displayPlayersFolder = ReplicatedStorage:FindFirstChild("displayPlayers")
     if not displayPlayersFolder then
         warn("displayPlayers folder does not exist in ReplicatedStorage.")
         return
     end
 
-    -- Loop through all children of displayPlayers
+    for modelName, highlight in pairs(highlightMap) do
+        if not displayPlayersFolder:FindFirstChild(modelName) then
+            highlight:Destroy()
+            highlightMap[modelName] = nil
+        end
+    end
+
     for _, child in pairs(displayPlayersFolder:GetChildren()) do
-        -- Get the character name from stats
         local stats = child:FindFirstChild("stats")
         if stats and stats:FindFirstChild("character") then
-            givenCharacter = stats.character.Value:lower()
-
-            -- Check if the character has a corresponding color
+            local givenCharacter = stats.character.Value:lower()
             local color = characterColors[givenCharacter]
+
             if color then
-                -- Highlight the corresponding model in the Workspace
                 local model = workspace:FindFirstChild(child.Name)
                 if model and model:IsA("Model") and model.Name ~= player.Name then
-                    local highlight = Instance.new("Highlight")
-                    highlight.FillColor = color
-                    highlight.FillTransparency = 0.3
-                    highlight.OutlineColor = color
-                    highlight.OutlineTransparency = 0.2
-                    highlight.Enabled = true
-                    highlight.Adornee = model
-                    highlight.Parent = workspace
-
-                    -- Track the highlight instance
-                    table.insert(activeHighlights, highlight)
+                    if not highlightMap[model.Name] then
+                        local highlight = Instance.new("Highlight")
+                        highlight.FillColor = color
+                        highlight.FillTransparency = 0.3
+                        highlight.OutlineColor = color
+                        highlight.OutlineTransparency = 0.2
+                        highlight.Enabled = true
+                        highlight.Adornee = model
+                        highlight.Parent = workspace
+                        highlightMap[model.Name] = highlight
+                    else
+                        local highlight = highlightMap[model.Name]
+                        highlight.FillColor = color
+                        highlight.OutlineColor = color
+                    end
                 else
                     warn("Model for", child.Name, "not found in Workspace.")
                 end
@@ -65,23 +67,13 @@ local function loopThroughDisplayPlayers()
             warn("Invalid stats or character value for", child.Name)
         end
     end
-
-    -- Check if the folder is empty, and if so, destroy all highlights
-    if #displayPlayersFolder:GetChildren() == 0 then
-        for _, highlight in pairs(activeHighlights) do
-            highlight:Destroy()
-        end
-        -- Clear the activeHighlights table
-        activeHighlights = {}
-        print("All highlights destroyed as displayPlayers has no children.")
-    end
 end
 
--- Call the function
-loopThroughDisplayPlayers()
+local displayPlayersFolder = ReplicatedStorage:WaitForChild("displayPlayers")
+displayPlayersFolder.ChildRemoved:Connect(loopThroughDisplayPlayers)
+displayPlayersFolder.ChildAdded:Connect(loopThroughDisplayPlayers)
 
--- Example: Monitor the folder for changes
-ReplicatedStorage.displayPlayers.ChildRemoved:Connect(loopThroughDisplayPlayers)
-ReplicatedStorage.displayPlayers.ChildAdded:Connect(loopThroughDisplayPlayers)
-
-print(" yes")
+while true do
+    loopThroughDisplayPlayers()
+    wait(1)
+end
